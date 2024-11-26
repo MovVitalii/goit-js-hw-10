@@ -1,8 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
-  // Отримуємо кнопку "Start"
   const startButton = document.querySelector('[data-start]');
+  const datetimePicker = document.querySelector('#datetime-picker');
 
-  // Налаштування flatpickr
   const options = {
     enableTime: true,
     time_24hr: true,
@@ -10,22 +9,17 @@ document.addEventListener('DOMContentLoaded', function () {
     minuteIncrement: 1,
     onClose(selectedDates) {
       const userSelectedDate = selectedDates[0];
-
-      // Перевіряємо дату на коректність
+      window.selectedDate = userSelectedDate;
       checkDateValidity(userSelectedDate);
     },
   };
 
-  // Ініціалізуємо flatpickr
-  flatpickr('#datetime-picker', options);
+  flatpickr(datetimePicker, options);
 
-  // Функція для перевірки коректності дати та оновлення кнопки
   function checkDateValidity(selectedDate) {
     if (selectedDate && selectedDate < new Date()) {
-      // Якщо дата в минулому, заблокувати кнопку
       startButton.disabled = true;
-
-      // Показуємо повідомлення про помилку
+      datetimePicker.disabled = false;
       iziToast.error({
         title: 'Error',
         message: 'Please choose a date in the future',
@@ -33,25 +27,23 @@ document.addEventListener('DOMContentLoaded', function () {
         timeout: 2000,
       });
     } else {
-      // Якщо дата в майбутньому, активуємо кнопку
       startButton.disabled = false;
+      datetimePicker.disabled = false;
     }
   }
 
-  // Перевірка дати при завантаженні сторінки
-  const initialSelectedDate = document.querySelector('#datetime-picker').value;
+  const initialSelectedDate = datetimePicker.value;
   if (initialSelectedDate) {
     checkDateValidity(new Date(initialSelectedDate));
   } else {
-    startButton.disabled = true; // Якщо дата не вибрана, кнопка заблокована
+    startButton.disabled = true;
+    datetimePicker.disabled = false;
   }
 
-  // Функція для додавання нулів до чисел
   function addLeadingZero(value) {
     return String(value).padStart(2, '0');
   }
 
-  // Функція для конвертації мілісекунд
   function convertMs(ms) {
     const second = 1000;
     const minute = second * 60;
@@ -64,16 +56,20 @@ document.addEventListener('DOMContentLoaded', function () {
     return { days, hours, minutes, seconds };
   }
 
-  // Обробник події для кнопки "Start"
   startButton.addEventListener('click', function () {
-      const selectedDateValue = document.querySelector('#datetime-picker').value;
-      const selectedDate = new Date(selectedDateValue);
-      const interval = setInterval(function () {
+    const selectedDate = window.selectedDate;
+    if (!selectedDate) return;
+
+    startButton.disabled = true;
+    datetimePicker.disabled = true;
+
+    const interval = setInterval(function () {
       const currentTime = new Date();
       const timeRemaining = selectedDate - currentTime;
       if (timeRemaining <= 0) {
         clearInterval(interval);
-        startButton.disabled = false; // Активуємо кнопку, коли час спливає
+        startButton.disabled = false;
+        datetimePicker.disabled = false;
         return;
       }
 
